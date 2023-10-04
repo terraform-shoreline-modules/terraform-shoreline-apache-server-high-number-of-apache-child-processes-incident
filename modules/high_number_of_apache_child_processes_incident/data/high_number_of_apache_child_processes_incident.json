@@ -1,0 +1,154 @@
+{
+  "name": "high_number_of_apache_child_processes_incident",
+  "description": "This incident type refers to a situation where the number of child processes created by an Apache server reaches a high threshold, causing performance issues and potentially leading to server crashes. This can occur due to factors such as high traffic volume or misconfigured server settings. The incident requires investigation and mitigation to restore normal server functioning and prevent future occurrences.",
+  "params": [
+    {
+      "name": "APACHE_PORT",
+      "value": ""
+    },
+    {
+      "name": "MAX_CONNECTIONS",
+      "value": ""
+    },
+    {
+      "name": "HOST_NAME",
+      "value": ""
+    },
+    {
+      "name": "K8S_CLUSTER_NAME",
+      "value": ""
+    },
+    {
+      "name": "NAMESPACE",
+      "value": ""
+    }
+  ],
+  "cells": [
+    {
+      "name": "cell_1",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## High Number of Apache Child Processes Incident\nThis incident type refers to a situation where the number of child processes created by an Apache server reaches a high threshold, causing performance issues and potentially leading to server crashes. This can occur due to factors such as high traffic volume or misconfigured server settings. The incident requires investigation and mitigation to restore normal server functioning and prevent future occurrences."
+    },
+    {
+      "name": "cell_2",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the resource usage of Apache child processes"
+    },
+    {
+      "name": "cell_3",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `ps aux | grep apache | grep -v grep | awk '{print $2}' | xargs ps u`"
+    },
+    {
+      "name": "cell_4",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check Apache error logs for any issues"
+    },
+    {
+      "name": "cell_5",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `tail -n 100 /var/log/apache/error_log`"
+    },
+    {
+      "name": "cell_6",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the number of Apache child processes"
+    },
+    {
+      "name": "cell_7",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `ps aux | grep apache | grep -v grep | wc -l`"
+    },
+    {
+      "name": "cell_8",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check Apache access logs for any unusual traffic"
+    },
+    {
+      "name": "cell_9",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `tail -n 100 /var/log/apache/access_log`"
+    },
+    {
+      "name": "cell_10",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check Apache configuration files for any misconfigurations"
+    },
+    {
+      "name": "cell_11",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `apachectl configtest`"
+    },
+    {
+      "name": "cell_12",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check server resource usage (CPU, memory, disk, network) to see if there are any bottlenecks"
+    },
+    {
+      "name": "cell_13",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `top`"
+    },
+    {
+      "name": "cell_14",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check network connections and open ports"
+    },
+    {
+      "name": "cell_15",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `netstat -an | grep ${APACHE_PORT}`"
+    },
+    {
+      "name": "cell_16",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check firewall settings"
+    },
+    {
+      "name": "cell_17",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `iptables -L`"
+    },
+    {
+      "name": "cell_18",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check system log for any relevant messages"
+    },
+    {
+      "name": "cell_19",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `tail -n 100 /var/log/messages`"
+    },
+    {
+      "name": "cell_20",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Reduce the number of processes by limiting the number of concurrent connections that can be made to Apache."
+    },
+    {
+      "name": "cell_21",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_edit_apache_max_connections($MAX_CONNECTIONS)"
+    }
+  ]
+}
